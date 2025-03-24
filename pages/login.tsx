@@ -1,4 +1,4 @@
-import { useState, FormEvent } from 'react';
+import { useState, FormEvent, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import { useAuth } from '../context/AuthContext';
@@ -19,11 +19,53 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [emailError, setEmailError] = useState('');
+  const [passwordError, setPasswordError] = useState('');
+  const [isFormValid, setIsFormValid] = useState(false);
+  
   const router = useRouter();
   const { login } = useAuth();
 
+  useEffect(() => {
+    validateForm();
+  }, [email, password]);
+
+  const validateEmail = (email: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  const validateForm = () => {
+    let valid = true;
+    
+    if (!email.trim()) {
+      setEmailError('Email is required');
+      valid = false;
+    } else if (!validateEmail(email)) {
+      setEmailError('Please enter a valid email address');
+      valid = false;
+    } else {
+      setEmailError('');
+    }
+    
+    if (!password) {
+      setPasswordError('Password is required');
+      valid = false;
+    } else {
+      setPasswordError('');
+    }
+    
+    setIsFormValid(valid);
+  };
+
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
+    
+    validateForm();
+    if (!isFormValid) {
+      return;
+    }
+    
     setLoading(true);
     setError('');
 
@@ -80,6 +122,8 @@ export default function Login() {
             autoFocus
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            error={!!emailError}
+            helperText={emailError}
           />
           
           <TextField
@@ -93,13 +137,15 @@ export default function Login() {
             autoComplete="current-password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            error={!!passwordError}
+            helperText={passwordError}
           />
           
           <Button
             type="submit"
             fullWidth
             variant="contained"
-            disabled={loading}
+            disabled={loading || !isFormValid}
             sx={{ mt: 3, mb: 2 }}
           >
             {loading ? 'Signing in...' : 'Sign In'}

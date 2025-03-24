@@ -1,4 +1,4 @@
-import { useState, FormEvent } from 'react';
+import { useState, FormEvent, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import { useAuth } from '../context/AuthContext';
@@ -10,7 +10,8 @@ import {
   Button, 
   Alert, 
   Paper, 
-  Avatar 
+  Avatar,
+  FormHelperText
 } from '@mui/material';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
 
@@ -18,13 +19,87 @@ export default function Register() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  
+  const [nameError, setNameError] = useState('');
+  const [emailError, setEmailError] = useState('');
+  const [passwordError, setPasswordError] = useState('');
+  const [confirmPasswordError, setConfirmPasswordError] = useState('');
+  const [isFormValid, setIsFormValid] = useState(false);
+  
   const router = useRouter();
   const { register } = useAuth();
 
+  useEffect(() => {
+    validateForm();
+  }, [name, email, password, confirmPassword]);
+
+  const validateEmail = (email: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  const validatePassword = (password: string): boolean => {
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
+    return passwordRegex.test(password);
+  };
+
+  const validateForm = () => {
+    let valid = true;
+    
+    if (!name.trim()) {
+      setNameError('Name is required');
+      valid = false;
+    } else if (name.trim().length < 2) {
+      setNameError('Name must be at least 2 characters');
+      valid = false;
+    } else {
+      setNameError('');
+    }
+    
+    if (!email.trim()) {
+      setEmailError('Email is required');
+      valid = false;
+    } else if (!validateEmail(email)) {
+      setEmailError('Please enter a valid email address');
+      valid = false;
+    } else {
+      setEmailError('');
+    }
+    
+    if (!password) {
+      setPasswordError('Password is required');
+      valid = false;
+    } else if (!validatePassword(password)) {
+      setPasswordError('Password must be at least 8 characters with 1 uppercase letter, 1 lowercase letter, and 1 number');
+      valid = false;
+    } else {
+      setPasswordError('');
+    }
+    
+    if (!confirmPassword) {
+      setConfirmPasswordError('Please confirm your password');
+      valid = false;
+    } else if (password !== confirmPassword) {
+      setConfirmPasswordError('Passwords do not match');
+      valid = false;
+    } else {
+      setConfirmPasswordError('');
+    }
+    
+    setIsFormValid(valid);
+  };
+
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
+    
+    validateForm();
+    if (!isFormValid) {
+      return;
+    }
+    
     setLoading(true);
     setError('');
 
@@ -81,6 +156,8 @@ export default function Register() {
             autoFocus
             value={name}
             onChange={(e) => setName(e.target.value)}
+            error={!!nameError}
+            helperText={nameError}
           />
           
           <TextField
@@ -93,6 +170,8 @@ export default function Register() {
             autoComplete="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            error={!!emailError}
+            helperText={emailError}
           />
           
           <TextField
@@ -106,13 +185,36 @@ export default function Register() {
             autoComplete="new-password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            error={!!passwordError}
+            helperText={passwordError}
           />
+          
+          <TextField
+            margin="normal"
+            required
+            fullWidth
+            name="confirmPassword"
+            label="Confirm Password"
+            type="password"
+            id="confirmPassword"
+            autoComplete="new-password"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            error={!!confirmPasswordError}
+            helperText={confirmPasswordError}
+          />
+          
+          {!passwordError && !confirmPasswordError && password && (
+            <FormHelperText sx={{ color: 'success.main', ml: 1.5 }}>
+              Password meets requirements
+            </FormHelperText>
+          )}
           
           <Button
             type="submit"
             fullWidth
             variant="contained"
-            disabled={loading}
+            disabled={loading || !isFormValid}
             sx={{ mt: 3, mb: 2 }}
           >
             {loading ? 'Creating Account...' : 'Create Account'}
