@@ -1,3 +1,4 @@
+'use client'
 import { useAuth } from '../context/AuthContext';
 import Layout from '../components/Layout';
 import { 
@@ -8,11 +9,16 @@ import {
   Box} from '@mui/material';
 import LockIcon from '@mui/icons-material/Lock';
 import { useRouter } from 'next/router';
+import { useEffect, useState } from 'react';
 
 export default function Home() {
   const { isAuthenticated } = useAuth();
-  console.log('isAuthenticated:', isAuthenticated);
   const router = useRouter();
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   return (
     <Layout>
@@ -25,33 +31,37 @@ export default function Home() {
             A complete authentication solution built with Next.js, GraphQL, and Material UI.
           </Typography>
           
-          {isAuthenticated ? (
-            <Button 
-              variant="contained" 
-              size="large" 
-              onClick={() => router.push('/dashboard')}
-              sx={{ mt: 2 }}
-            >
-              Go to Dashboard
-            </Button>
-          ) : (
-            <Box sx={{ mt: 2 }}>
-              <Button 
-                variant="contained" 
-                size="large" 
-                onClick={() => router.push('/login')}
-                sx={{ mr: 2 }}
-              >
-                Login
-              </Button>
-              <Button 
-                variant="outlined" 
-                size="large" 
-                onClick={() => router.push('/register')}
-              >
-                Register
-              </Button>
-            </Box>
+          {mounted && (
+            <>
+              {isAuthenticated ? (
+                <Button 
+                  variant="contained" 
+                  size="large" 
+                  onClick={() => router.push('/dashboard')}
+                  sx={{ mt: 2 }}
+                >
+                  Go to Dashboard
+                </Button>
+              ) : (
+                <Box sx={{ mt: 2 }}>
+                  <Button 
+                    variant="contained" 
+                    size="large" 
+                    onClick={() => router.push('/login')}
+                    sx={{ mr: 2 }}
+                  >
+                    Login
+                  </Button>
+                  <Button 
+                    variant="outlined" 
+                    size="large" 
+                    onClick={() => router.push('/register')}
+                  >
+                    Register
+                  </Button>
+                </Box>
+              )}
+            </>
           )}
         </Grid>
         

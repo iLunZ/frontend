@@ -1,4 +1,6 @@
-import { ReactNode } from 'react';
+'use client'
+
+import { ReactNode, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { useAuth } from '../context/AuthContext';
 import { 
@@ -24,7 +26,12 @@ export default function Layout({ children, title = 'Authentication System' }: La
   const { isAuthenticated, user, logout } = useAuth();
   const router = useRouter();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [mounted, setMounted] = useState(false);
   
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const handleMenu = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
   };
@@ -48,6 +55,17 @@ export default function Layout({ children, title = 'Authentication System' }: La
     logout();
   };
 
+  const AuthButtons = () => (
+    <>
+      <Button color="inherit" onClick={() => router.push('/login')}>
+        Login
+      </Button>
+      <Button color="inherit" onClick={() => router.push('/register')}>
+        Register
+      </Button>
+    </>
+  )
+
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
       <AppBar position="static">
@@ -61,7 +79,7 @@ export default function Layout({ children, title = 'Authentication System' }: La
             {title}
           </Typography>
           
-          {isAuthenticated ? (
+          {mounted && isAuthenticated ? (
             <div>
               <IconButton
                 size="large"
@@ -72,7 +90,7 @@ export default function Layout({ children, title = 'Authentication System' }: La
                 color="inherit"
               >
                 <Avatar sx={{ width: 32, height: 32, bgcolor: 'secondary.main' }}>
-                  {user?.name.charAt(0).toUpperCase()}
+                  {user?.name?.charAt(0).toUpperCase()}
                 </Avatar>
               </IconButton>
               <Menu
@@ -95,16 +113,9 @@ export default function Layout({ children, title = 'Authentication System' }: La
                 <MenuItem onClick={handleLogout}>Logout</MenuItem>
               </Menu>
             </div>
-          ) : (
-            <>
-              <Button color="inherit" onClick={() => router.push('/login')}>
-                Login
-              </Button>
-              <Button color="inherit" onClick={() => router.push('/register')}>
-                Register
-              </Button>
-            </>
-          )}
+          ) : mounted && !isAuthenticated ? (
+            <AuthButtons />
+          ) : null}
         </Toolbar>
       </AppBar>
       
