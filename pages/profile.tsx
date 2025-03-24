@@ -30,6 +30,9 @@ export default function Profile() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
+  const [nameError, setNameError] = useState('');
+  const [emailError, setEmailError] = useState('');
+  const [isFormValid, setIsFormValid] = useState(false);
 
   const [updateProfile] = useMutation(UPDATE_PROFILE_MUTATION);
 
@@ -40,8 +43,50 @@ export default function Profile() {
     }
   }, [user]);
 
+  useEffect(() => {
+    validateForm();
+  }, [name, email]);
+
+  // Email validation function
+  const validateEmail = (email: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  const validateForm = () => {
+    let valid = true;
+    
+    // Validate name
+    if (!name.trim()) {
+      setNameError('Name is required');
+      valid = false;
+    } else if (name.trim().length < 2) {
+      setNameError('Name must be at least 2 characters');
+      valid = false;
+    } else {
+      setNameError('');
+    }
+    if (!email.trim()) {
+      setEmailError('Email is required');
+      valid = false;
+    } else if (!validateEmail(email)) {
+      setEmailError('Please enter a valid email address');
+      valid = false;
+    } else {
+      setEmailError('');
+    }
+    
+    setIsFormValid(valid);
+  };
+
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
+    
+    validateForm();
+    if (!isFormValid) {
+      return;
+    }
+    
     setLoading(true);
     setError('');
     setSuccess('');
@@ -60,12 +105,12 @@ export default function Profile() {
       });
       if (!data?.updateUser) {
         setError('Failed to update profile');
+      } else {
+        setSuccess('Profile updated successfully');
+        setTimeout(() => {
+          window.location.reload();
+        }, 2000);
       }
-      setTimeout(() => {
-        window.location.reload();
-      }, 2000);
-      
-      setSuccess('Profile updated successfully');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update profile');
     } finally {
@@ -117,6 +162,8 @@ export default function Profile() {
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     required
+                    error={!!nameError}
+                    helperText={nameError}
                   />
                   
                   <TextField
@@ -127,13 +174,15 @@ export default function Profile() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
+                    error={!!emailError}
+                    helperText={emailError}
                   />
                   
                   <Box sx={{ mt: 3 }}>
                     <Button
                       type="submit"
                       variant="contained"
-                      disabled={loading}
+                      disabled={loading || !isFormValid}
                     >
                       {loading ? 'Saving...' : 'Save Changes'}
                     </Button>
