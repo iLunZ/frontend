@@ -60,6 +60,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [loading, setLoading] = useState(true);
   const router = useRouter();
   const token = getCookie('token');
+  console.log('==>your cookie token:', token);
 
   // Login mutation
   const [loginMutation] = useMutation<{ login: AuthResponse }>(LOGIN_MUTATION);
@@ -67,7 +68,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   // Register mutation
   const [registerMutation] = useMutation<{ register: AuthResponse }>(REGISTER_MUTATION);
 
-  // Use useQuery for fetching current user
   const { loading: userLoading } = useQuery(GET_CURRENT_USER, {
     skip: !token || !!user?.id, // Skip the query if there's no token
     context: {
@@ -94,7 +94,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   });
 
-  // Update loading state based on userLoading
   useEffect(() => {
     if (!token || !userLoading) {
       setLoading(false);
@@ -113,7 +112,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       }
       
       const { token, user } = data.login;     
-      setCookie('token', token);
+      setCookie('token', token, { httpOnly: false });
       setUser(user);     
       return { success: true };
     } catch (error) {
@@ -137,7 +136,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       
       const { token, user } = data.register;
       
-      setCookie('token', token);     
+      setCookie('token', token, { httpOnly: false });     
       setUser(user);     
       return { success: true };
     } catch (error) {

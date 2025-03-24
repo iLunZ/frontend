@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/router';
-import { useAuth } from '../context/AuthContext';
-import Layout from '../components/Layout';
+import { useAuth } from '@/context/AuthContext';
+import Layout from '@/components/Layout';
 import { 
   Typography, 
   Box, 
@@ -103,7 +103,6 @@ export default function Dashboard() {
                 </ListItemIcon>
                 <ListItemText primary="Edit Profile" />
               </ListItem>
-              {/* Add more quick links as needed */}
             </List>
           </Paper>
         </Grid>
